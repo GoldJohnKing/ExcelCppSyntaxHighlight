@@ -8,6 +8,8 @@ schema: spec-driven
 #     Tech stack: TypeScript, React, Node.js
 #     We use conventional commits
 #     Domain: e-commerce platform
+context: |
+  在执行任何 python 或 pip 命令之前，必须先使用 uv venv 初始化并激活虚拟环境（或使用 uv run 执行命令），所有 Python 相关操作必须在 uv 环境中完成。严禁直接使用系统全局的 python 或 pip，以避免污染全局环境。
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
