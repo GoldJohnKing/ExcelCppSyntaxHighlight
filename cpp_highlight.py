@@ -257,16 +257,25 @@ def is_cpp_code(text):
 
 
 def highlight_cell(cell):
-    """Apply syntax highlighting to a cell containing C++ code."""
+    """Apply syntax highlighting to a cell containing C++ code.
+
+    Returns:
+        tuple: (success: bool, required_height: float or None)
+        required_height is the calculated row height needed for this cell's content.
+    """
     text = cell.value
     if not isinstance(text, str):
-        return False
+        return False, None
 
     if not is_cpp_code(text):
-        return False
+        return False, None
 
     try:
         tokens = list(lex(text, CppLexer()))
+
+        # Remove trailing newline token added by CppLexer
+        if tokens and tokens[-1][0] == Token.Text.Whitespace and tokens[-1][1] == "\n":
+            tokens = tokens[:-1]
 
         blocks = []
         for token_type, value in tokens:
@@ -282,13 +291,38 @@ def highlight_cell(cell):
         # Enable text wrapping to display multiline code correctly
         cell.alignment = Alignment(wrap_text=True, vertical="top")
 
-        return True
+        # Calculate required row height for this cell
+        required_height = calculate_required_height(tokens)
+
+        return True, required_height
 
     except Exception as e:
         print(
             f"Warning: Failed to highlight cell {cell.coordinate}: {e}", file=sys.stderr
         )
-        return False
+        return False, None
+
+
+def calculate_required_height(tokens):
+    """Calculate the required row height for given tokens.
+
+    Returns:
+        float: Required row height in points.
+    """
+    # Count lines in the content
+    line_count = 1
+    for token_type, value in tokens:
+        if "\n" in value:
+            line_count += value.count("\n")
+
+    # Calculate height based on line count
+    # Excel default row height is 15 points for 11pt Calibri (1 line)
+    # For 11pt Consolas code with proper readability, use 16 points per line
+    # Base height: 16 points, each additional line adds 16 points
+    base_height = 16.0
+    line_height = 16.0
+
+    return base_height + (line_count - 1) * line_height
 
 
 def process_excel(input_path, output_path, verbose=False):
@@ -310,16 +344,40 @@ def process_excel(input_path, output_path, verbose=False):
         if verbose:
             print(f"\nProcessing sheet: {sheet_name}")
 
+        # Track row height requirements: {row_number: max_required_height}
+        row_height_requirements = {}
+
         for row in ws.iter_rows():
             for cell in row:
                 if isinstance(cell.value, str) and is_cpp_code(cell.value):
                     if verbose:
                         print(f"  {cell.coordinate}: Detected C++ code")
 
-                    if highlight_cell(cell):
+                    success, required_height = highlight_cell(cell)
+                    if success:
                         highlighted_count += 1
                         if verbose:
                             print(f"    -> Highlighted")
+
+                        # Track the maximum required height for this row
+                        if required_height is not None:
+                            row_num = cell.row
+                            current_max = row_height_requirements.get(row_num, 0)
+                            row_height_requirements[row_num] = max(
+                                current_max, required_height
+                            )
+
+        # Apply row heights: compare original height with required height, take the larger
+        for row_num, required_height in row_height_requirements.items():
+            original_height = ws.row_dimensions[row_num].height
+
+            if original_height is None:
+                # No original height set, use required height
+                ws.row_dimensions[row_num].height = required_height
+            else:
+                # Take the larger of original and required
+                final_height = max(original_height, required_height)
+                ws.row_dimensions[row_num].height = final_height
 
     if verbose:
         print(f"\nSaving: {output_path}")
