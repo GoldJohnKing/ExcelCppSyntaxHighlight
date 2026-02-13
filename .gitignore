@@ -1,3 +1,22 @@
+# Vibe coding tool files
 .claude
 .opencode
+
+# Python cache
 __pycache__
+
+# Python virtual environments
+.venv/
+.venv_windows/
+
+# Build artifacts
+dist/
+build/
+
+# Compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# IDE files
+.vscode/
