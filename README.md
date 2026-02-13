@@ -59,7 +59,9 @@ python cpp_highlight.py my_code.xlsx -o my_code_highlighted.xlsx --verbose
 
 ## Color Theme
 
-The tool uses the Atom One Light color scheme:
+The tool uses the Atom One Light color scheme by default. Colors are defined in a JSON configuration file (`theme.json`) located in the same directory as the script or executable.
+
+### Default Colors
 
 | Token Type | Color | Example |
 |------------|-------|---------|
@@ -71,6 +73,28 @@ The tool uses the Atom One Light color scheme:
 | Classes/Types | Gold (#C18401) | `std::string`, `vector` |
 | Variables | Red (#E45649) | `x`, `count` |
 | Operators | Dark Gray (#383A42) | `+`, `-`, `=` |
+
+### Customizing Colors
+
+You can customize the color theme by editing the `theme.json` file. The file will be automatically created on first run with the default Atom One Light theme.
+
+**Example theme.json:**
+```json
+{
+  "Keyword": "A626A4",
+  "String": "50A14F",
+  "Comment": "A0A1A7",
+  "Number": "986801",
+  "Name.Function": "4078F2",
+  "Name.Class": "C18401",
+  "Name": "E45649",
+  "Operator": "383A42",
+  "Punctuation": "383A42",
+  "Text": "383A42"
+}
+```
+
+Colors should be specified as 6-digit hex codes (without the `#` prefix).
 
 ## Detection Algorithm
 
