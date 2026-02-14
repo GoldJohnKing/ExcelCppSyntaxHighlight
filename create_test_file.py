@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """Create test Excel file with C++ code samples."""
 
-import sys
-
-sys.path.insert(
-    0, "/mnt/d/GitRepos/ExcelCppSyntaxHighlight/.venv/lib/python3.12/site-packages"
-)
-
 import openpyxl
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Side, PatternFill
