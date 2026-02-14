@@ -23,6 +23,7 @@ from xml.etree.ElementTree import Element
 import json
 
 from .config import FontSettings
+from .core.detection import is_cpp_code, C_DETECTORS_HIGH, C_DETECTORS_MEDIUM
 
 
 # Custom TextBlock that always sets xml:space="preserve" for whitespace tokens
@@ -189,30 +190,6 @@ def load_theme_config():
 THEME_CONFIG = load_theme_config()
 
 
-# C++ detection patterns
-C_DETECTORS_HIGH = [
-    r'#include\s*[\<"]',
-    r"using\s+namespace\s+\w+",
-    r"int\s+main\s*\(",
-    r"std::",
-    r"::\s*\w+\s*\(",
-    r"template\s*\<",
-]
-
-C_DETECTORS_MEDIUM = [
-    r"\b(class|struct|enum)\s+\w+",
-    r"\b(int|char|float|double|void|bool|auto|const|constexpr|mutable)\b",
-    r"^\s*(public|private|protected):",
-    r"^\s*#\s*(define|ifdef|ifndef|endif|pragma)",
-    r"\b(for|while|if|else|switch|case|break|continue|return)\b",
-    r"\b(cout|cin|endl|printf|scanf)\b",
-    r"\<\<|\>\>",
-    r"\b(string|vector|map|set|array)\b",
-    r"//",  # Single line comment
-    r"/\*.*?\*/",  # Multi-line comment (non-greedy)
-]
-
-
 def get_color(token_type):
     """Get color for a token type from the theme configuration."""
     # Try exact match first
@@ -227,35 +204,6 @@ def get_color(token_type):
 
     # Default color
     return "383A42"
-
-
-def is_cpp_code(text):
-    """Detect if text contains C++ code."""
-    if not text or not isinstance(text, str):
-        return False
-
-    high_confidence = 0
-    medium_confidence = 0
-
-    for pattern in C_DETECTORS_HIGH:
-        matches = re.findall(pattern, text, re.MULTILINE)
-        high_confidence += len(matches)
-
-    for pattern in C_DETECTORS_MEDIUM:
-        flags = re.MULTILINE
-        if "/*" in pattern:
-            flags |= re.DOTALL
-        matches = re.findall(pattern, text, flags)
-        medium_confidence += len(matches)
-
-    if high_confidence >= 1:
-        return True
-    if medium_confidence >= 3:
-        return True
-    if medium_confidence >= 2 and len(text) > 100:
-        return True
-
-    return False
 
 
 def highlight_cell(cell):
