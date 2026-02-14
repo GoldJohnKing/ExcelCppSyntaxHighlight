@@ -15,13 +15,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python -m cpp_highlight input.xlsx -o output.xlsx
-  python -m cpp_highlight code.xlsx --output highlighted.xlsx --verbose
+  cpp_highlight.exe input.xlsx                    # Output: input_output.xlsx
+  cpp_highlight.exe input.xlsx -o custom.xlsx     # Output: custom.xlsx
+  cpp_highlight.exe code.xlsx -v                  # Verbose mode
+
+Drag & Drop:
+  Simply drag an Excel file onto cpp_highlight.exe to process it.
+  Output will be saved as <filename>_output.xlsx in the same directory.
         """,
     )
 
-    parser.add_argument("input", help="Input Excel file path")
-    parser.add_argument("-o", "--output", required=True, help="Output Excel file path")
+    parser.add_argument("input", help="Input Excel file path (or drag & drop)")
+    parser.add_argument(
+        "-o", "--output", help="Output Excel file path (default: <input>_output.xlsx)"
+    )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose output"
     )
@@ -39,11 +46,19 @@ Examples:
             file=sys.stderr,
         )
 
-    count = process_excel(args.input, args.output, args.verbose)
+    # Generate default output path if not specified
+    if args.output:
+        output_path = args.output
+    else:
+        output_path = str(
+            input_path.parent / f"{input_path.stem}_output{input_path.suffix}"
+        )
+
+    count = process_excel(str(input_path), output_path, args.verbose)
 
     print(f"Processed {count} cells with C++ code")
-    print(f"  Input:  {args.input}")
-    print(f"  Output: {args.output}")
+    print(f"  Input:  {input_path}")
+    print(f"  Output: {output_path}")
 
 
 if __name__ == "__main__":
